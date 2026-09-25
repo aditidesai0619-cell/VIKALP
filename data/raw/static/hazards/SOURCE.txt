@@ -1,0 +1,70 @@
+VIKALP — Hazard evidence acquisition record (Task 18)
+
+SOURCE
+Bhuvan (ISRO / National Remote Sensing Centre), public disaster WMS.
+Service: https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms
+Protocol: OGC WMS 1.1.1 (GeoServer).
+No login/API key was required for any request made below.
+
+APPROVED LAYERS (per Task 18 approval)
+1. disaster:UK_SLIM_2017 — Seasonal Landslide Inventory Mapping, 2017.
+   Purpose in VIKALP: Historical Disaster Evidence dimension.
+2. disaster:RIRUCHBA_LHZ_01 — Landslide Hazard Zonation, titled
+   "New_rishikesh_rudraprayag_chamoli_badrinath" in the service's own
+   metadata (a Char Dham pilgrimage-route corridor tile: Rishikesh -
+   Rudraprayag - Chamoli - Badrinath).
+   Purpose in VIKALP: Hazard Exposure dimension.
+
+RETRIEVAL DATE
+2026-09-12 (this session). The WMS GetCapabilities response used to
+extract the two layer-metadata files below was originally fetched
+earlier in this same session (Task 17's source investigation) and
+reused here rather than re-fetched, since it is stable public
+reference-service metadata; its own SHA256 is recorded per-file below.
+The GetFeatureInfo query files were fetched fresh for this task.
+
+FILES IN THIS DIRECTORY
+
+uk_slim_2017_wms_layer_metadata.xml
+riruchba_lhz_01_wms_layer_metadata.xml
+  - The exact <Layer>...</Layer> block for each approved layer,
+    extracted verbatim from the live WMS GetCapabilities response
+    (source file SHA256: 7a5a8ed3751187f4bcd84581aaec0632a8ada133cad92d278ee0d27e475d26cb,
+    5,211,565 bytes, fetched via WebFetch, service=WMS&request=GetCapabilities&version=1.1.1).
+  - Contains: layer Name, Title, SRS (EPSG:4326), LatLonBoundingBox,
+    queryable flag, and style/legend reference. No feature-level
+    geometry (GetCapabilities never contains feature geometry).
+
+uk_slim_2017_getfeatureinfo_bhitai_malli.gml
+riruchba_lhz_01_getfeatureinfo_bhitai_malli.gml
+  - Live GetFeatureInfo (WMS 1.1.1, INFO_FORMAT=application/vnd.ogc.gml)
+    response queried at Bhitai Malli's exact coordinates
+    (lon 78.781266, lat 30.167112), bbox=78.77,30.16,78.79,30.18,
+    width=101, height=101, x=50, y=50 (i.e. the map center pixel).
+  - Both are empty <wfs:FeatureCollection> documents (see content) —
+    no landslide/hazard-zone feature was returned at this exact point.
+
+uk_slim_2017_getfeatureinfo_sample_point_bbox_center.gml
+riruchba_lhz_01_getfeatureinfo_sample_point_bbox_center.gml
+  - The same GetFeatureInfo query repeated at each layer's own
+    bounding-box center (NOT Bhitai Malli) — an attempt to retrieve at
+    least one example feature to document the layer's real attribute
+    schema/geometry type. Also empty. Recorded for completeness, not
+    as evidence about Bhitai Malli.
+
+WFS STATUS
+The service's dedicated WFS endpoint was tested directly
+(service=WFS&request=GetCapabilities at both /bhuvan/wfs and
+/bhuvan/ows) and returned the explicit server error "Service WFS is
+disabled" both times — confirmed, not assumed. No vector/GeoJSON bulk
+download endpoint is available for these layers. GetFeatureInfo (a
+point-query mechanism, not bulk export) was the only working query
+interface found.
+
+LICENSE / TERMS
+Not separately confirmed for WMS consumption. Bhuvan's general
+NRSC/ISRO data terms (the same family recorded for the Task 14
+CartoDEM download) are assumed to apply but were not independently
+re-verified for this specific service in this task.
+
+Full detail: docs/DATA_PROVENANCE.md, docs/DECISIONS.md (Task 18).

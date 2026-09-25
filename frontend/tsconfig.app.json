@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    // "leaflet.markercluster" added for this task's Overview map
+    // integration: @types/leaflet.markercluster only augments the
+    // "leaflet" module (adds `L.MarkerCluster`/`L.MarkerClusterGroupOptions`)
+    // rather than being pulled in by any explicit `import`, so it needs
+    // to be listed here to actually activate — the standard/documented
+    // use of this compiler option for augmentation-only @types packages.
+    "types": ["vite/client", "leaflet.markercluster"],
+    "allowArbitraryExtensions": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}

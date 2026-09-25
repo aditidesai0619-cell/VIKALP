@@ -1,0 +1,239 @@
+Dataset: OpenStreetMap road/path network — Bhitai Malli vicinity extract
+File: bhitai_malli_osm_roads_vicinity.geojson
+
+SOURCE
+------
+Publisher: OpenStreetMap contributors
+License: Open Data Commons Open Database License (ODbL) 1.0 — same
+  license family already used for VIKALP's geoBoundaries dataset.
+  Attribution required: "© OpenStreetMap contributors".
+Accessed via: Overpass API (overpass-api.de/api/interpreter), a free,
+  keyless public query service over the OSM database. One-time query,
+  not called live from the running application.
+Coordinate reference system: EPSG:4326 (WGS84, lon/lat) — OSM's native CRS.
+Extraction date: 2026-09-25 (this task's session).
+
+QUERY
+-----
+[out:json][timeout:60];
+(way["highway"](30.1570,78.7712,30.1758,78.7911););
+out geom;
+
+Query box: the same Open Buildings vicinity extract bounding box
+(lon [78.7712, 78.7911], lat [30.1570, 30.1758]) — any OSM way tagged
+`highway=*` with at least one node inside this box, returned with full
+inline geometry (no separate node-resolution step needed).
+
+PROCESSING
+----------
+Raw Overpass response: 14 ways, all real, unmodified OSM geometry.
+Overpass returns each way's COMPLETE geometry even where it extends
+far outside the query box (e.g. a district highway continuing for
+many km) — for a village-scale map this is unhelpfully large, so each
+way was clipped to a padded box (the vicinity box above + 0.015°,
+~1.5-1.7 km buffer) by keeping only maximal contiguous runs of the
+way's own original points that fall inside that padded box. This is a
+standard bounding-box clip, not a modification of geometry: no point
+was moved, added, or interpolated — a way that exits and re-enters the
+box simply became two (or more) separate real segments.
+
+RESULT
+------
+Segments after clipping: 16 (from 14 original ways; the "trunk" road
+split into 3 segments and "unclassified" split as it crossed the
+padded box boundary multiple times — real switchback mountain-road
+geometry, not an artifact).
+
+Highway categories present (segment count / total length):
+  unclassified : 3 segments / ~10,659 m
+  tertiary     : 1 segment  / ~6,965 m
+  trunk        : 3 segments / ~6,649 m
+  residential  : 7 segments / ~1,995 m
+  track        : 2 segments / ~1,813 m
+  Total: 16 segments / ~28,081 m
+
+No path/footway/cycleway/service/living_street/primary/secondary
+categories exist in this OSM area — not assumed, confirmed absent
+from the actual Overpass response.
+
+Only 1 of 14 original ways carries a `name` tag ("Pauri Highway", the
+trunk road). No other name was invented for the rest.
+
+Properties kept per segment: `highway`, `name` (nullable), `surface`
+(nullable), `osm_way_id`, and a fixed `source: "OpenStreetMap
+contributors"` disclosure string.
+
+COVERAGE RELATIVE TO BUILDINGS
+-------------------------------
+Distance from each of the six building clusters (identified during
+Open Buildings verification) to the nearest mapped road:
+  30.16900, 78.77810 (127 bldgs) -> 28 m  (residential)
+  30.16886, 78.77667 (104 bldgs) -> 12 m  (residential)
+  30.16375, 78.78423 (69 bldgs)  -> 161 m (tertiary)
+  30.16132, 78.77998 (80 bldgs)  -> 107 m (tertiary)
+  30.16349, 78.78063 (58 bldgs)  -> 196 m (tertiary)
+  30.17135, 78.78558 (69 bldgs)  -> 311 m (trunk)
+
+Two clusters are directly adjacent to a mapped residential street
+(12-28 m); the other four are 100-311 m from the nearest mapped road —
+real, honest, uneven coverage. This is not claimed as complete village
+road coverage.
+
+IMPORTANT LIMITATION
+---------------------
+Road/path coverage reflects OpenStreetMap community mapping and may be
+incomplete — it is NOT an official government road inventory. Most of
+the mapped length (unclassified/tertiary/trunk, ~24.3 km combined) is
+regional through-roads passing near the village, not exclusively
+village-internal streets; the residential + track categories
+(~3.8 km combined) are the closest analogue to local village
+road/path network, and even that is not asserted to be exhaustive.
+
+
+==================================================================
+Dataset: OpenStreetMap water features — Bhitai Malli vicinity extract
+File: bhitai_malli_osm_water_vicinity.geojson
+==================================================================
+
+SOURCE
+------
+Publisher: OpenStreetMap contributors. License: ODbL 1.0, attribution
+required. Accessed via Overpass API, one-time query. CRS: EPSG:4326.
+Extraction date: 2026-09-25.
+
+QUERY
+-----
+[out:json][timeout:80];
+(
+  way["natural"="water"](30.1570,78.7712,30.1758,78.7911);
+  node["natural"="water"](30.1570,78.7712,30.1758,78.7911);
+  way["waterway"~"river|stream|canal|drain"](30.1570,78.7712,30.1758,78.7911);
+);
+out geom;
+
+Same vicinity box as the buildings/roads extracts. (The public Overpass
+service was intermittently overloaded during this session — 504/429
+errors on several attempts across multiple mirrors — this specific
+query succeeded on a retry; documented in case this is revisited.)
+
+RESULT
+------
+Raw response: 1 real way — natural=water polygons: 0, waterway
+features: 1 (a stream named "Nandal Gad", `waterway=stream`).
+No canal/drain/river features exist in this area — confirmed absent,
+not assumed.
+
+Clipped the same way as the roads extract (padded box = vicinity box +
+0.015°, keeping only contiguous runs of the way's own original points
+— no interpolation): 1 segment, ~5,505 m within the padded box (the
+full unclipped way is ~9,953 m — a real stream continuing well beyond
+this immediate area, most of it deliberately excluded as not locally
+relevant).
+
+Distance from the stream to the settlement's recorded coordinate:
+~539 m. Distance to each of the six building clusters: 187-955 m
+(closest: the northeasternmost cluster at 30.17135,78.78558, 187 m).
+
+Properties kept: `waterway`, `natural` (both nullable — only one is
+ever set per feature), `name`, `osm_way_id`, `source`.
+
+APPLICATION USE
+----------------
+Backend: `GET /api/settlements/{id}/water`. Frontend: MapLibre `line`
+layer, restrained blue, rendered beneath roads (see VillageMap.tsx).
+
+LIMITATION
+----------
+A single mapped stream — real, but not necessarily every watercourse
+near the village; OSM water-feature mapping in mountainous terrain is
+often sparse. Not an official hydrology dataset.
+
+
+==================================================================
+Dataset: OpenStreetMap essential services / POIs — Bhitai Malli vicinity
+File: bhitai_malli_osm_services_vicinity.geojson
+==================================================================
+
+SOURCE
+------
+Publisher: OpenStreetMap contributors. License: ODbL 1.0, attribution
+required. Accessed via Overpass API, one-time queries (run per-category
+due to intermittent server load — see QUERY below). CRS: EPSG:4326.
+Extraction date: 2026-09-25.
+
+QUERY
+-----
+Per category (hospital, clinic, school, college, kindergarten,
+pharmacy, community_centre, place_of_worship, fire_station, police,
+post_office, townhall):
+  node["amenity"="<category>"](bbox); way["amenity"="<category>"](bbox);
+out geom;
+
+Step 1 — tight vicinity box (30.1570,78.7712,30.1758,78.7911, the same
+box used for buildings/roads/water): ALL 12 categories returned ZERO
+features. A real, honest result — not a failed query (each category
+was independently confirmed, most with an explicit empty JSON
+response; a few needed retries due to transient 504s from the public
+Overpass service, documented per-category in this session's tool
+output, not fabricated as "0" without confirmation).
+
+Step 2 — since Step 1 was uniformly empty, a padded box was queried
+per the brief's own allowance ("may use a slightly padded bounding box
+... document the exact query area"): (30.1087,78.7212,30.2258,78.8411),
+i.e. the vicinity box + 0.05° (~5.5 km). This DID return real features:
+hospital=4, clinic=2, school=2, college=5, place_of_worship=3. All
+other categories (kindergarten, pharmacy, community_centre,
+fire_station, police, post_office, townhall) = 0 even in this wider box.
+
+FILTERING (distance cutoff, not a second query)
+-------------------------------------------------
+The 16 raw hits split into two distinct groups by distance from Bhitai
+Malli's coordinate: 4 features at 1.95-2.57 km, and 12 features at
+5.91-7.09 km. The 12 distant ones are clearly part of the separate,
+denser building cluster ~6 km away already identified as a different
+settlement (almost certainly Srinagar) during the Open Buildings
+verification task — including them as "near Bhitai Malli" would
+misrepresent proximity. A straight-line 3 km cutoff from the
+settlement's own coordinate was applied to exclude that cluster,
+keeping only the plausibly-local group. This is a distance filter on
+real data, not a second query and not a fabrication.
+
+RESULT — kept (<= 3 km)
+------------------------
+  hospital          "DH Pauri" (District Hospital, Pauri)     1.95 km
+  clinic             "Dr. Nautiyal's Clinic"                  2.28 km
+  clinic             "Dr. Bahuguna Clinic"                    2.29 km
+  place_of_worship  "Kyunkaleshwar" (Hindu temple)            2.57 km
+Zero mapped: school, college, kindergarten, pharmacy,
+  community_centre, fire_station, police, post_office, townhall
+  (within 3 km of Bhitai Malli).
+
+RESULT — excluded (> 3 km, different settlement's cluster, not shipped)
+-------------------------------------------------------------------------
+  3 more hospitals, 2 schools, 5 "college"-tagged features (several of
+  which are actually named "...GROUND" / athletic fields of a college
+  campus — a real OSM tagging quirk, not something this extraction
+  invented or corrected), 2 more places of worship — all 5.9-7.1 km
+  away, in/near Srinagar.
+
+Properties kept: `amenity`, `name` (nullable), `osm_id`, `osm_type`,
+`distance_m` (from Bhitai Malli's coordinate, computed here — not an
+OSM field), `source`.
+
+APPLICATION USE
+----------------
+Backend: `GET /api/settlements/{id}/services`. Frontend: MapLibre
+`symbol` layer with small icons per category, rendered above the
+buildings layer (see VillageMap.tsx). Popups show only `name`/
+`amenity`/`source` — no capacity, staffing, hours, or quality data,
+since none exists in the source.
+
+LIMITATION
+----------
+These are the ONLY real, mapped services found within 3 km of Bhitai
+Malli — 4 features across 3 categories. Nine of twelve investigated
+categories have zero results even out to ~5.5 km. This is disclosed as
+"mapped services" throughout the UI, never as "services serving the
+village" or a complete inventory. Coverage reflects OpenStreetMap
+mapping and may be incomplete — not an official government facility
+registry.

@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/* Task 42 correction — final VIKALP visual direction: near-black
+   foundation + strategic gold + white/neutral text. Same token NAMES
+   as before (only the values changed) so every existing component
+   that already references vikalp-bg/card/border/navy/text/etc. picks
+   up the new theme automatically — no per-component rewrite needed.
+   `--color-vikalp-navy` keeps its historical name but now holds the
+   gold accent (the same #A8822F LoginPage.tsx already proved out) —
+   used for headings, active navigation, primary CTAs, and status
+   highlights; `--color-vikalp-warning` shares it, since "pending" is
+   the single most common status shown throughout VIKALP and is
+   exactly where a status highlight belongs. safe/critical keep their
+   own semantic hue (never gold) — status meaning must never be
+   conveyed by the brand accent alone. */
+/* Global UI scale + layout refinement — brand colors/aesthetic
+   unchanged; this pass adds a named type scale (replacing scattered
+   arbitrary text-[Npx] values), an 8px spacing rhythm, a dedicated
+   "stat" size for hero numbers, and slightly cooler/higher-contrast
+   surface tones for readability. `--color-vikalp-navy` keeps its
+   historical name but holds the gold brand accent. */
+@theme {
+  --color-vikalp-bg: #0a0a0a;
+  --color-vikalp-card: #141417;
+  --color-vikalp-border: #2a2a2e;
+  --color-vikalp-navy: #a8822f;
+  --color-vikalp-safe: #4caf87;
+  --color-vikalp-warning: #a8822f;
+  --color-vikalp-critical: #d9695f;
+  --color-vikalp-text: #e4e4e7;
+  --color-vikalp-text-secondary: #a1a1aa;
+
+  --radius-vikalp-card: 12px;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Named type scale (overrides Tailwind's default text-xl/2xl values
+     to match the requested hierarchy; text-stat is new). */
+  --text-xs: 0.75rem; /* 12px — tags, pills, captions */
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem; /* 14px — body text, table values, nav links */
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem; /* 16px — card descriptions, form inputs */
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem; /* 18px — card titles */
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.5rem; /* 24px — section titles */
+  --text-xl--line-height: 2rem;
+  --text-2xl: 1.875rem; /* 30px — page titles */
+  --text-2xl--line-height: 2.25rem;
+  --text-stat: 2.5rem; /* 40px — hero numbers (population/households/etc.) */
+  --text-stat--line-height: 1;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-vikalp-bg);
+  color: var(--color-vikalp-text);
+  font-family: var(--font-sans);
+}
+
+/* Dark, themed scrollbars everywhere — the default light OS/browser
+   scrollbar was the biggest visible seam in an otherwise dark UI,
+   especially inside the page-content scroll region. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-vikalp-border) var(--color-vikalp-bg);
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--color-vikalp-bg);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-vikalp-border);
+  border-radius: 8px;
+  border: 2px solid var(--color-vikalp-bg);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-vikalp-text-secondary);
+}

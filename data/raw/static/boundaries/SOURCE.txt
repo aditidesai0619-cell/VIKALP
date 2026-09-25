@@ -1,0 +1,11 @@
+File: geoBoundaries-IND-ADM2_simplified.geojson
+
+Downloaded from:
+https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2_simplified.geojson
+
+Retrieved: 2026-09-11 (this task session)
+Retrieved via: geoBoundaries API (https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/)
+SHA256: d68db39cd3e2d0892af268e2b0454166368ce3b5b8a78fcda63069ec92a641db
+
+This file is read-only raw source data. Do not modify it.
+Full provenance record: docs/DATA_PROVENANCE.md

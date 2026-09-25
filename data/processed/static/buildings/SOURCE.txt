@@ -1,0 +1,67 @@
+Dataset: Google Open Buildings v3 — Bhitai Malli vicinity extract
+File: bhitai_malli_open_buildings_vicinity.geojson
+
+SOURCE
+------
+Publisher: Google Research ("Open Buildings" project)
+Dataset: Open Buildings v3 (building footprint polygons, confidence
+  score, area, Plus Code centroid — no height, type, or address).
+Coverage of the underlying dataset: Africa, South Asia, South-East
+  Asia, Latin America and the Caribbean (India is included as part of
+  South Asia).
+Accessed via: source.coop re-hosting (Chris Holmes,
+  source.coop/cholmes/google-open-buildings), a cloud-native GeoParquet
+  republish of the same, unmodified upstream data — original Google
+  distribution is gzipped CSV, sharded by S2 level-4 cell (333 tiles
+  worldwide; the tile covering this area is `391_buildings.csv.gz`,
+  ~7.19 GB, gs://open-buildings-data/v3/polygons_s2_level_4_gzip/).
+Queried file (India partition, hive-partitioned by country_iso then
+  quadkey): s3://us-west-2.opendata.source.coop/google-research-open-buildings/geoparquet-by-country/country_iso=IN/IN_123130.parquet
+  (~1.92 GB — this file was never downloaded in full; only the query
+  result below was retained).
+
+License: Dual-licensed — Creative Commons Attribution 4.0 (CC BY 4.0)
+  and Open Data Commons Open Database License 1.0 (ODbL 1.0). The user
+  may choose either license. Both require attribution; neither
+  restricts commercial or derivative use. (Confirmed directly from
+  Google's own site and the source.coop republish's own README —
+  identical statement in both.)
+
+EXTRACTION METHOD
+-----------------
+Tool: DuckDB (httpfs + spatial extensions), one remote SQL query
+  against the India GeoParquet partition above, over HTTPS. No file
+  was downloaded to disk in full; only matching rows were retained.
+Query: ST_Intersects(geometry, ST_MakeEnvelope(lon-0.01, lat-0.01,
+  lon+0.01, lat+0.01)) around Bhitai Malli's recorded coordinate
+  (30.167112, 78.781266) — a ~1.1 km half-width box, chosen to
+  comfortably cover the six building clusters already identified
+  within ~700 m of the settlement point during prior verification,
+  with margin.
+Extraction date: 2026-09-25 (this task's session).
+Properties kept: `confidence` (float), `area_in_meters` (float),
+  `full_plus_code` (string), plus a fixed `source` disclosure string
+  added during extraction. No other upstream column was retained.
+Geometry: copied verbatim (WGS84 / EPSG:4326 lon/lat), never
+  simplified, reprojected, or clipped beyond the bounding-box filter
+  above.
+
+RESULT
+------
+Feature count: 875
+Bounding box: lon [78.7712, 78.7911], lat [30.1570, 30.1758]
+Confidence range: 0.6503 - 0.9072
+Footprint area range: 4.21 - 289.09 m^2
+
+IMPORTANT LIMITATION
+---------------------
+No official Bhitai Malli settlement-boundary polygon exists anywhere
+in VIKALP (confirmed by repo inspection) to prove that every one of
+these 875 footprints falls within the administrative extent of the
+settlement, as opposed to a neighboring, unrelated structure. This
+file should be labeled and treated as "Open Buildings — Bhitai Malli
+vicinity" / "settlement vicinity coverage", never as an official or
+complete Bhitai Malli building inventory.
+
+This file is a derived/processed extract, not the untouched raw
+Google distribution — data/raw/ was intentionally not used for it.

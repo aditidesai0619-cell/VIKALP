@@ -1,0 +1,114 @@
+VIKALP — GSI/NLFC field-validated landslide inventory (Task 20)
+
+SOURCE
+Geological Survey of India (GSI), National Landslide Forecasting
+Centre (NLFC) — Bhusanket portal, public Esri ArcGIS Server.
+Service: https://bhusanket.gsi.gov.in/gisserver/rest/services/Hosted/Public_Portal_Dashboard_Map/FeatureServer/0
+Layer name (server-declared): Landslide_Public
+Access: public, no login/token required — confirmed directly.
+Retrieval date: 2026-09-12 (this session).
+
+WHAT THIS IS / IS NOT
+This is a field-validated landslide INVENTORY (past mapped/recorded
+landslide events). It is NOT a susceptibility score, NOT a hazard
+score, and NOT proof that any specific location — including Bhitai
+Malli — is or is not affected. No source record was reinterpreted.
+
+QUERY / FILTER USED
+Method: HTTP POST to the FeatureServer's own /query endpoint (the
+service's documented, intended query mechanism — no scraping).
+Spatial filter: geometryType=esriGeometryPolygon, spatialRel=
+esriSpatialRelIntersects, using the EXACT Pauri Garhwal district
+polygon already established in this repo (data/processed/static/
+boundaries_uk_demo.geojson, shapeName="Garhwal", the same polygon
+Task 12 verified contains Bhitai Malli).
+Attribute filter: where=1=1 (none — all fields, all matching records).
+Output params: outFields=*, f=geojson.
+
+WHY A POLYGON FILTER, NOT THE `district` ATTRIBUTE FIELD
+The dataset's own `district` field is inconsistent near Bhitai Malli:
+some genuinely-local records are labeled "Garhwal" rather than the
+official "Pauri Garhwal". An attribute filter (district='Pauri
+Garhwal') alone would have returned 569 records and silently missed
+the ones labeled "Garhwal" — including several of the records nearest
+to Bhitai Malli itself. A raw bounding-box spatial filter was also
+tried and rejected: it returned 1,073 records spanning 8 different
+district labels (Almora, Chamoli, Dehradun, Garhwal, Nainital, Pauri
+Garhwal, Tehri Garhwal, Uttarkashi) because Pauri Garhwal's district
+shape is irregular relative to its bounding rectangle. The exact
+polygon intersection (813 records) is the most geometrically precise
+option available and was used for the acquired file. See
+docs/DECISIONS.md Task 20 for the full reasoning.
+
+Within the 813 acquired records, the `district` field itself reads:
+  Pauri Garhwal: 565
+  Garhwal:       213
+  Almora:         30
+  Uttarkashi:      3
+  Tehri Garhwal:   1
+  Chamoli:         1
+The 35 records labeled with a neighboring district's name (Almora,
+Uttarkashi, Tehri Garhwal, Chamoli) but geometrically inside Pauri
+Garhwal's polygon are most likely GPS/coordinate-placement imprecision
+in the source data, not an error introduced here — recorded as-is,
+not corrected or excluded.
+
+FILE
+gsi_nlfc_field_validated_landslides_pauri_garhwal.geojson
+  Format: GeoJSON (FeatureCollection), as returned by the server
+  (f=geojson) — not locally converted from another format.
+  Size: 2,332,765 bytes.
+  SHA256: b9f73d5a7e0f8d62947ae76ab61d01dd553220ecc507a2940cae7e667d968e99
+  Feature count: 813 (confirmed 3 independent ways: the server's own
+  returnCountOnly query, a manual count of the downloaded file's
+  features, and GeoPandas' row count on load).
+  Geometry: Point exclusively.
+  CRS: EPSG:4326 — confirmed via the service's own declared
+  spatialReference (wkid 4326) and independently via GeoPandas'
+  auto-detection on load. The GeoJSON file itself carries no explicit
+  top-level "crs" member, consistent with RFC 7946 (which treats
+  WGS84 as the implicit default and discourages an explicit CRS
+  member) — the same situation already documented for the Task 12
+  boundaries file.
+  Attributes: all 134 source fields preserved, unmodified, unrenamed
+  (objectid, globalid, state, district, village, slide_name, slide_no,
+  toposheet, activity, triggering, movement_t, geology, initiation,
+  length/width/depth/height/ls_area/ls_volume, damage/casualty fields,
+  report/photos/citation references, latitude/longitude, and more —
+  full field list in docs/DATA_PROVENANCE.md).
+
+BHITAI MALLI RESULT
+No GSI inventory feature intersects the Bhitai Malli point
+(78.781266, 30.167112) — confirmed by an exact-coordinate check
+across all 813 features (zero matches) in addition to the dedicated
+spatial query already run in Task 19.
+Nearest record: 2.04 km away (slide_no UK/GAR/53J16/2015/1103,
+district "Garhwal", toposheet 53J16, activity "Active", triggering
+"Rainfall", movement type "Slide").
+21 records fall within 5 km of Bhitai Malli — all labeled district
+"Garhwal", nearly all triggering="Rainfall", spanning activity states
+Active/Reactivated/Suspended/Abandoned. This is spatial context, not a
+claim that Bhitai Malli itself has any recorded landslide.
+
+LICENSE / TERMS
+Not explicitly stated on this specific API endpoint. GSI's general
+data-dissemination terms (the same family recorded for the Task 14
+CartoDEM and Task 18 Bhuvan acquisitions — citation required, no
+resale/relicensing implied) are assumed to apply but were not
+independently re-confirmed for this exact service in this task.
+
+LIMITATIONS
+- Many nearby records show initiation=0, which appears to be an
+  unset/default value rather than an actual event year — not resolved
+  or interpreted.
+- slide_name is blank/whitespace for most records near Bhitai Malli —
+  recorded as-is.
+- The `district` field's own inconsistency (documented above) means
+  any future attribute-only filtering on this file must account for
+  both "Pauri Garhwal" and "Garhwal" (and, rarely, adjacent-district
+  labels) rather than trusting `district` alone.
+- Dataset represents inventoried/reported events, not a susceptibility
+  surface — it cannot say anything about un-reported or future risk.
+- Not independently validated against any other landslide inventory.
+
+Full detail: docs/DATA_PROVENANCE.md, docs/DECISIONS.md (Task 20).

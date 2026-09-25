@@ -1,0 +1,161 @@
+/* VIKALP-styled overrides for the integrated React-Leaflet Overview
+   map (see AdvancedMap.tsx's module comment for why this library
+   exists only here, and docs/DECISIONS.md for the full task entry).
+   Global selectors are unavoidable: Leaflet renders popups/tooltips/
+   attribution into its own DOM panes outside React's component tree,
+   using its own hardcoded class names — there is no scoped/module CSS
+   equivalent for them. Every selector here is scoped to leaflet- or
+   vikalp- prefixed classes only, so nothing outside the map is affected. */
+
+.vikalp-leaflet-container,
+.leaflet-container {
+  background: #12140f;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Custom divIcon markers — no image assets, no external CDN. */
+.vikalp-marker {
+  background: transparent;
+  border: none;
+}
+
+.vikalp-dot {
+  display: block;
+  border-radius: 9999px;
+}
+
+.vikalp-dot--settlement {
+  width: 14px;
+  height: 14px;
+  background: #e8c876;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.vikalp-dot--settlement-selected {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 14px;
+  height: 14px;
+  background: #e8c876;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+
+.vikalp-halo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  background: rgba(232, 200, 118, 0.25);
+  filter: blur(2px);
+}
+
+/* Restrained red/orange for verified GSI inventory evidence — never
+   the app's gold accent, and never a saturated/alarm red (Task brief
+   §6/§7: "restrained," and never labeled a risk/danger indicator). */
+.vikalp-dot--evidence {
+  width: 9px;
+  height: 9px;
+  background: #c1622f;
+  opacity: 0.85;
+  border: 1px solid rgba(18, 20, 15, 0.6);
+}
+
+.vikalp-cluster-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: rgba(193, 98, 47, 0.85);
+  border: 2px solid rgba(18, 20, 15, 0.7);
+  color: #fbf3e3;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Popups — dark/warm panel, gold accent, no default bright Leaflet
+   demo styling (Task brief §12). */
+.leaflet-popup-content-wrapper {
+  background: #17150f;
+  color: #ece9e2;
+  border: 1px solid #2a2823;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.leaflet-popup-tip {
+  background: #17150f;
+  border: 1px solid #2a2823;
+}
+
+.leaflet-popup-content {
+  margin: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  min-width: 160px;
+}
+
+.leaflet-popup-close-button {
+  color: #9a9587 !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: #ece9e2 !important;
+}
+
+.vikalp-popup-title {
+  display: block;
+  color: #f3e6c2;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.vikalp-popup-line {
+  color: #cfc9ba;
+}
+
+/* Permanent labels (settlement names, district names) — text-halo
+   effect via text-shadow instead of a background chip, matching the
+   MapLibre StateMap's own symbol-layer label styling. */
+.leaflet-tooltip.vikalp-settlement-label,
+.leaflet-tooltip.vikalp-district-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  font-weight: 600;
+  font-size: 11px;
+  color: #f3e6c2;
+  text-shadow:
+    0 0 3px #0b0a08,
+    0 0 3px #0b0a08,
+    0 0 4px #0b0a08;
+}
+
+.leaflet-tooltip.vikalp-district-label {
+  color: #9a9587;
+  font-weight: 500;
+  font-size: 10.5px;
+}
+
+.leaflet-tooltip-top.vikalp-settlement-label::before,
+.leaflet-tooltip-bottom.vikalp-district-label::before {
+  display: none;
+}
+
+.leaflet-control-attribution {
+  background: rgba(23, 21, 15, 0.85) !important;
+  color: #9a9587 !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+  color: #d9b56a !important;
+}

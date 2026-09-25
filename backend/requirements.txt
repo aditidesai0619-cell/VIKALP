@@ -1,0 +1,35 @@
+fastapi==0.141.1
+pydantic==2.13.4
+uvicorn==0.52.4
+
+# GIS data processing (Task 12) — used to filter/reproject sourced
+# boundary data into data/processed/. Not required at API request time
+# (the boundaries endpoint reads the already-processed GeoJSON file
+# directly), but kept installed for the next GIS data task.
+geopandas==1.1.4
+shapely==2.1.2
+pyproj==3.8.0
+
+# Raster (DEM/terrain) processing (Task 14). rasterio's Windows wheel
+# bundles its own GDAL (3.12.4) statically — the separate `gdal`/osgeo
+# PyPI package failed to build in this environment (no MSVC Build
+# Tools; see docs/DECISIONS.md Task 14) and was not installed, since
+# rasterio's bundled GDAL already covers every raster operation this
+# project needs.
+rasterio==1.5.1
+
+# PDF report generation (Task 34) — already part of the locked VIKALP
+# stack ("Reports: Python ReportLab", docs/VIKALP_MASTER_SPEC.md), not
+# previously installed since no report existed to generate. Pulls in
+# pillow and charset-normalizer as its own standard dependencies (image
+# handling / encoding) — not separately chosen here.
+reportlab==5.0.1
+
+# Mapbox Vector Tile encoding (Task 45.8) — the Evidence workspace's
+# minimum local tile-serving mechanism for the GSI/NLFC landslide
+# inventory only (see app/services/gis_tiles.py); not a production
+# tile server, no PostGIS/Docker. Pulls in protobuf (MVT wire format)
+# and pyclipper (polygon clipping the library uses internally) as its
+# own dependencies — not separately chosen here. shapely was already
+# installed (Task 12).
+mapbox-vector-tile==2.2.0
