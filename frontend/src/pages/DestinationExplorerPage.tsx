@@ -2,14 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge } from "../components/common/Badge";
 import { Callout } from "../components/common/Callout";
 import { HeroStat } from "../components/common/HeroStat";
-import { AlertTriangleIcon } from "../components/common/icons";
+import { AlertTriangleIcon, LayersIcon } from "../components/common/icons";
 import { HistoricalDestinationView } from "../components/destination/HistoricalDestinationView";
 import {
   DestinationIntelligenceRail,
+  PathwayComparisonSection,
   type ComparisonRow,
   type EvidenceRow,
 } from "../components/destination/DestinationIntelligenceRail";
-import { NearbyLocationsPanel } from "../components/destination/NearbyLocationsPanel";
+import { DestinationTabs, DestinationTabContent, type Tab } from "../components/destination/NearbyLocationsPanel";
 import { RelocationPlanningPanel } from "../components/destination/RelocationPlanningPanel";
 import { HistoricalReplayToggle } from "../components/historical-replay/HistoricalReplayToggle";
 import { SimplePageLayout } from "../components/layout/SimplePageLayout";
@@ -117,6 +118,8 @@ export function DestinationExplorerPage({
   const [waterState, setWaterState] = useState<WaterRequestState>({ status: "loading" });
   const [amenitiesState, setAmenitiesState] = useState<AmenitiesRequestState>({ status: "loading" });
   const [selectedCandidate, setSelectedCandidate] = useState<ApiDestinationCandidate | null>(null);
+  const [tab, setTab] = useState<Tab>("government");
+  const [layersOpen, setLayersOpen] = useState(false);
   const [layerVisibility, setLayerVisibility] = useState<VillageLayerVisibility>({
     buildings: true,
     roads: true,
@@ -229,10 +232,16 @@ export function DestinationExplorerPage({
 
   const evidenceRows: EvidenceRow[] = analysis
     ? [
-        { label: "Current Settlement", status: "Available", onNavigate: () => onNavigate("map-intelligence") },
+        {
+          label: "Current Settlement",
+          status: "Available",
+          detail: analysis.settlement_name,
+          onNavigate: () => onNavigate("map-intelligence"),
+        },
         {
           label: "Destination Availability",
           status: topCandidate ? "Available" : "Not available",
+          detail: topCandidate ? topCandidate.destination_name : "No government-curated destination",
           onNavigate: () => onNavigate("destination-explorer"),
         },
         {
@@ -262,7 +271,7 @@ export function DestinationExplorerPage({
 
   return (
     <SimplePageLayout activePage={activePage} onNavigate={onNavigate}>
-      <div className="flex flex-col gap-8">
+      <div className="mx-auto flex w-full max-w-[1680px] flex-col gap-7">
         <div className="flex flex-wrap items-center justify-end gap-3">
           <HistoricalReplayToggle />
         </div>
@@ -299,48 +308,74 @@ export function DestinationExplorerPage({
               hasCandidates={topCandidate !== null}
             />
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-              <div className="flex min-w-0 flex-col gap-6 lg:col-span-8">
-                <div>
-                  <h2 className="text-[20px] font-semibold text-vikalp-text">Destination Exploration</h2>
-                  <p className="text-[13px] text-vikalp-text-secondary">
-                    Explore potential relocation destinations and their suitability based on
-                    available evidence.
-                  </p>
-                </div>
+            <div>
+              <h2 className="text-[20px] font-semibold text-vikalp-text">Destination Exploration</h2>
+              <p className="mt-1 text-[13px] text-vikalp-text-secondary">
+                Explore potential relocation destinations and their suitability based on available
+                evidence.
+              </p>
+            </div>
 
-                <div className="flex flex-col gap-4 xl:flex-row">
-                  <div className="flex min-w-0 flex-1 flex-col gap-4">
-                    {/* Map — the visual centerpiece (brief §8/§9): the
-                        same shared VillageMap already used by
-                        Settlement/Risk/Relocation Planner, with real
-                        buildings/roads/water/services/boundaries and
-                        the candidate destination marker when one
-                        exists — not the older, narrower RelocationMap
-                        this page used previously. */}
-                    <div className="relative flex h-110 shrink-0 lg:h-140">
-                      <VillageMap
-                        ref={mapHandleRef}
-                        geojsonState={geojsonState}
-                        onRetryGeojson={runFetchGeojson}
-                        boundaries={boundaries}
-                        buildings={buildings}
-                        roads={roads}
-                        water={water}
-                        amenities={amenities}
-                        layerVisibility={layerVisibility}
-                        destinationCandidate={topCandidate}
-                        onSelectDestination={() => topCandidate && setSelectedCandidate(topCandidate)}
-                      />
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+              {/* Main column: ~68-72% on desktop (brief §2). The map is
+                  the dominant element here — tabs/banner above it,
+                  the location list below it, exactly per the brief's
+                  suggested Destination Exploration structure. */}
+              <div className="flex min-w-0 flex-col gap-5 lg:col-span-8">
+                <DestinationTabs
+                  tab={tab}
+                  onChange={setTab}
+                  candidatesCount={candidates.length}
+                  nearbyCount={amenities?.features.length ?? 0}
+                />
 
-                      <div className="absolute left-3 top-3 z-1200 flex flex-col gap-2">
-                        <TerrainMapControls
-                          onZoomIn={() => mapHandleRef.current?.zoomIn()}
-                          onZoomOut={() => mapHandleRef.current?.zoomOut()}
-                          onTiltUp={() => mapHandleRef.current?.tiltUp()}
-                          onTiltDown={() => mapHandleRef.current?.tiltDown()}
-                          onReset={() => mapHandleRef.current?.resetView()}
-                        />
+                {/* Map — the visual centerpiece (brief §8/§9): the same
+                    shared VillageMap already used by Settlement/Risk/
+                    Relocation Planner, with real buildings/roads/water/
+                    services/boundaries and the candidate destination
+                    marker when one exists. Only the surrounding
+                    container/controls layout changed here — the map
+                    itself, its data, and its worker are untouched. */}
+                <div className="relative flex h-120 shrink-0 overflow-hidden rounded-vikalp-card border border-vikalp-border lg:h-140">
+                  <VillageMap
+                    ref={mapHandleRef}
+                    geojsonState={geojsonState}
+                    onRetryGeojson={runFetchGeojson}
+                    boundaries={boundaries}
+                    buildings={buildings}
+                    roads={roads}
+                    water={water}
+                    amenities={amenities}
+                    layerVisibility={layerVisibility}
+                    destinationCandidate={topCandidate}
+                    onSelectDestination={() => topCandidate && setSelectedCandidate(topCandidate)}
+                  />
+
+                  <div className="absolute left-3 top-3 z-1200 flex flex-col items-start gap-2">
+                    <TerrainMapControls
+                      onZoomIn={() => mapHandleRef.current?.zoomIn()}
+                      onZoomOut={() => mapHandleRef.current?.zoomOut()}
+                      onTiltUp={() => mapHandleRef.current?.tiltUp()}
+                      onTiltDown={() => mapHandleRef.current?.tiltDown()}
+                      onReset={() => mapHandleRef.current?.resetView()}
+                    />
+                    {/* Layers panel: kept fully intact (VillageLayerControl
+                        untouched), but collapsed behind a compact toggle
+                        on this page only, so it no longer sits permanently
+                        open over a large part of the map (brief §3). */}
+                    <div className="flex flex-col items-start gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setLayersOpen((v) => !v)}
+                        aria-expanded={layersOpen}
+                        className={`pointer-events-auto flex items-center gap-1.5 rounded-md border border-vikalp-border bg-vikalp-card/95 px-2.5 py-2 text-[12px] font-medium transition-colors hover:bg-vikalp-bg ${
+                          layersOpen ? "text-vikalp-navy" : "text-vikalp-text-secondary"
+                        }`}
+                      >
+                        <LayersIcon className="h-3.5 w-3.5" />
+                        Layers
+                      </button>
+                      {layersOpen && (
                         <VillageLayerControl
                           visibility={layerVisibility}
                           onToggle={(key) => setLayerVisibility((v) => ({ ...v, [key]: !v[key] }))}
@@ -350,80 +385,76 @@ export function DestinationExplorerPage({
                           servicesAvailable={amenities !== null}
                           destinationAvailable={topCandidate !== null}
                         />
-                      </div>
-
-                      <div className="absolute right-3 top-3 z-1200">
-                        <VillageDataSourcePanel
-                          buildingsAvailable={buildings !== null}
-                          roadsAvailable={roads !== null}
-                          waterAvailable={water !== null}
-                          servicesAvailable={amenities !== null}
-                        />
-                      </div>
+                      )}
                     </div>
-
-                    <RelocationReadinessPipeline stages={readinessStages} />
                   </div>
 
-                  <div className="flex w-full flex-col gap-3 xl:w-96">
-                    <h3 className="text-[15px] font-semibold text-vikalp-navy">
-                      Candidate &amp; Nearby Locations
-                    </h3>
-                    <NearbyLocationsPanel
-                      candidates={candidates}
-                      amenities={amenities}
-                      onSelectCandidate={setSelectedCandidate}
+                  <div className="absolute right-3 top-3 z-1200">
+                    <VillageDataSourcePanel
+                      buildingsAvailable={buildings !== null}
+                      roadsAvailable={roads !== null}
+                      waterAvailable={water !== null}
+                      servicesAvailable={amenities !== null}
                     />
                   </div>
                 </div>
 
-                <RelocationPlanningPanel onOpenPlanner={() => onNavigate("relocation-planner")} />
-
-                <div className="flex flex-col gap-2 rounded-vikalp-card border border-vikalp-border bg-vikalp-card p-4">
-                  <h2 className="text-[15px] font-semibold text-vikalp-navy">Quick Actions</h2>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onNavigate("relocation-planner")}
-                      className="rounded-md border border-vikalp-border px-3 py-1.5 text-[13px] font-medium text-vikalp-navy transition-colors hover:border-vikalp-warning hover:bg-vikalp-warning/10"
-                    >
-                      Open Relocation Planner
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onNavigate("data-governance")}
-                      className="rounded-md border border-vikalp-border px-3 py-1.5 text-[13px] font-medium text-vikalp-navy transition-colors hover:border-vikalp-warning hover:bg-vikalp-warning/10"
-                    >
-                      View Evidence
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onNavigate("decision-workspace")}
-                      className="rounded-md border border-vikalp-border px-3 py-1.5 text-[13px] font-medium text-vikalp-navy transition-colors hover:border-vikalp-warning hover:bg-vikalp-warning/10"
-                    >
-                      Review Decision
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onNavigate("decision-workspace")}
-                      className="rounded-md border border-vikalp-border px-3 py-1.5 text-[13px] font-medium text-vikalp-navy transition-colors hover:border-vikalp-warning hover:bg-vikalp-warning/10"
-                    >
-                      Add Officer Notes
-                    </button>
-                  </div>
-                </div>
-
-                <Callout icon={<AlertTriangleIcon className="h-4 w-4" />}>{analysis.officer_review_note}</Callout>
-              </div>
-
-              <div className="lg:sticky lg:top-20 lg:col-span-4 lg:self-start">
-                <DestinationIntelligenceRail
-                  evidenceRows={evidenceRows}
-                  comparisonRows={comparisonRows}
-                  readinessStages={readinessStages}
+                <DestinationTabContent
+                  tab={tab}
+                  candidates={candidates}
+                  amenities={amenities}
+                  onSelectCandidate={setSelectedCandidate}
                 />
               </div>
+
+              {/* Evidence rail: ~28-32% on desktop, narrower and less
+                  visually dominant than the map (brief §5). */}
+              <div className="lg:sticky lg:top-20 lg:col-span-4 lg:self-start">
+                <DestinationIntelligenceRail evidenceRows={evidenceRows} />
+              </div>
             </div>
+
+            <RelocationReadinessPipeline stages={readinessStages} />
+
+            <PathwayComparisonSection rows={comparisonRows} />
+
+            <RelocationPlanningPanel onOpenPlanner={() => onNavigate("relocation-planner")} />
+
+            <div className="flex flex-col gap-2 rounded-vikalp-card border border-vikalp-border bg-vikalp-card p-4">
+              <h2 className="text-[15px] font-semibold text-vikalp-navy">Quick Actions</h2>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => onNavigate("relocation-planner")}
+                  className="rounded-md border border-vikalp-border px-3 py-1.5 text-[13px] font-medium text-vikalp-navy transition-colors hover:border-vikalp-warning hover:bg-vikalp-warning/10"
+                >
+                  Open Relocation Planner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("data-governance")}
+                  className="rounded-md border border-vikalp-border px-3 py-1.5 text-[13px] font-medium text-vikalp-navy transition-colors hover:border-vikalp-warning hover:bg-vikalp-warning/10"
+                >
+                  View Evidence
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("decision-workspace")}
+                  className="rounded-md border border-vikalp-border px-3 py-1.5 text-[13px] font-medium text-vikalp-navy transition-colors hover:border-vikalp-warning hover:bg-vikalp-warning/10"
+                >
+                  Review Decision
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("decision-workspace")}
+                  className="rounded-md border border-vikalp-border px-3 py-1.5 text-[13px] font-medium text-vikalp-navy transition-colors hover:border-vikalp-warning hover:bg-vikalp-warning/10"
+                >
+                  Add Officer Notes
+                </button>
+              </div>
+            </div>
+
+            <Callout icon={<AlertTriangleIcon className="h-4 w-4" />}>{analysis.officer_review_note}</Callout>
           </>
         )}
       </div>
