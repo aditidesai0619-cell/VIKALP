@@ -1,6 +1,6 @@
 import { apiFetch } from "./apiClient";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 // Task 45.8 — GSI/NLFC landslide inventory served as viewport-scoped
 // Mapbox Vector Tiles instead of one full-GeoJSON download (see

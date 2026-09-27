@@ -8,7 +8,7 @@
 
 import { clearSession, getToken } from "./session";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 // Dispatched on `window` whenever a protected request comes back 401
 // (missing/expired/invalid token). App.tsx listens for this once, at
